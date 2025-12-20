@@ -149,6 +149,8 @@ modules:
       handler: index.calculateEmissions
     - key: shipment-panel-resolver
       handler: index.shipmentPanelResolver
+    - key: shipment-resolver
+      handler: index.shipmentPanelResolverDefs
     - key: workflow-validator
       handler: index.workflowValidator
     - key: workflow-postfunction
@@ -159,6 +161,16 @@ modules:
       handler: index.issueUpdatedHandler
     - key: log-macro-renderer
       handler: index.logMacroRenderer
+    - key: log-macro-resolver
+      handler: index.logMacroResolver
+    - key: dashboard-resolver
+      handler: index.dashboardResolver
+    - key: jsm-panel-resolver
+      handler: index.jsmPanelResolver
+    - key: knowledge-base-resolver
+      handler: index.knowledgeBaseResolver
+    - key: trend-forecast
+      handler: index.scheduledTrendForecasting
   jira:customField:
     - key: un-code-field
       name: UN Hazmat Code
@@ -182,7 +194,38 @@ modules:
     - key: shipment-data-panel
       title: LogiBrew Shipment Manager
       icon: https://developer.atlassian.com/platform/forge/images/icons/issue-panel-icon.svg
-      function: shipment-panel-resolver
+      resource: shipment-panel-resource
+      resolver:
+        function: shipment-resolver
+      render: native
+  jira:dashboardGadget:
+    - key: logistics-metrics-gadget
+      title: LogiBrew Metrics
+      description: Display logistics metrics including delay patterns, response times, and trend forecasting
+      thumbnail: https://developer.atlassian.com/platform/forge/images/icons/issue-panel-icon.svg
+      resource: dashboard-resource
+      resolver:
+        function: dashboard-resolver
+      render: native
+  jiraServiceManagement:portalRequestDetailPanel:
+    - key: jsm-insights-panel
+      title: LogiBrew AI Insights
+      resource: jsm-panel-resource
+      resolver:
+        function: jsm-panel-resolver
+      render: native
+      unlicensedAccess:
+        - customer
+        - unlicensed
+  confluence:globalPage:
+    - key: knowledge-base-page
+      title: LogiBrew Knowledge Base
+      icon: https://developer.atlassian.com/platform/forge/images/icons/issue-panel-icon.svg
+      route: logibrew-knowledge
+      resource: knowledge-base-resource
+      resolver:
+        function: knowledge-base-resolver
+      render: native
   jira:workflowValidator:
     - key: compliance-validator
       name: LogiBrew Compliance Validator
@@ -204,11 +247,66 @@ modules:
         - avi:jira:updated:issue
       filter:
         ignoreSelf: true
-  confluence:macro:
+  scheduledTrigger:
+    - key: daily-trend-forecast
+      function: trend-forecast
+      interval: day
+  macro:
     - key: verifiable-log-macro
+      resource: log-macro-resource
+      resolver:
+        function: log-macro-resolver
+      render: native
       title: LogiBrew Verifiable Logs
       description: Embeds hash-verified decision logs and AI insights in Confluence pages
-      function: log-macro-renderer
+  confluence:contentProperty:
+    - key: logibrew-decision-logs
+      propertyKey: logibrew_decision_log
+      values:
+        - path: timestamp
+          type: number
+          searchAlias: logibrew_timestamp
+        - path: action
+          type: string
+          searchAlias: logibrew_action
+          uiSupport:
+            valueType: string
+            name: Decision Action
+            defaultOperator: "="
+            tooltip: "Type of decision made (route_change, compliance_check, etc.)"
+        - path: shipmentId
+          type: string
+          searchAlias: logibrew_shipment
+          uiSupport:
+            valueType: string
+            name: Shipment ID
+            defaultOperator: "="
+            tooltip: "Unique shipment identifier"
+        - path: hash
+          type: string
+          searchAlias: logibrew_hash
+        - path: userId
+          type: string
+          searchAlias: logibrew_user
+        - path: decision.status
+          type: string
+          searchAlias: logibrew_status
+          uiSupport:
+            valueType: string
+            name: Decision Status
+            defaultOperator: "="
+            tooltip: "Status of the decision (approved, rejected, etc.)"
+resources:
+  - key: shipment-panel-resource
+    path: src/shipment-panel/index.jsx
+  - key: log-macro-resource
+    path: src/macro/index.jsx
+  - key: dashboard-resource
+    path: src/dashboard/index.jsx
+  - key: jsm-panel-resource
+    path: src/jsm-panel/index.jsx
+  - key: knowledge-base-resource
+    path: src/knowledge-base/index.jsx
 app:
   runtime:
     name: nodejs24.x
@@ -222,3 +320,8 @@ permissions:
     - manage:jira-configuration
     - write:confluence-content
     - read:confluence-content.all
+    - write:servicedesk-request
+    - read:servicedesk-request
+    - write:jira-work
+    - read:comment:jira
+    - write:comment:jira
