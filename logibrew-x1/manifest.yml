@@ -1,41 +1,224 @@
 modules:
   rovo:agent:
-    - key: logibrew-x1-hello-world-agent
-      name: logibrew-x1
-      description: An agent for testing Forge agent functionality
+    - key: logibrew-disruption-agent
+      name: LogiBrew Disruption Analyst
+      description: AI-powered logistics expert for disruption management, compliance validation, and verifiable decision-making
       prompt: >
-        You are a simple agent that helps Forge developers build their first
-        Rovo agent.
+        You are LogiBrew, an expert logistics AI assistant specializing in supply chain disruption management, 
+        compliance validation, and adaptive route planning. You help logistics teams analyze shipment data, 
+        identify potential issues, suggest adaptations, and create verifiable audit trails for decisions.
 
-        You can create Forge logs by using the hello-world-logger action.
 
-        If the user hasn't provided a message when they ask you to create a log
-        ask them to provide one.
+        Your core capabilities:
+
+        1. **Disruption Analysis**: Analyze shipment routes, cargo types, timelines, and transport modes to identify 
+        potential delays, regulatory issues, or operational risks.
+
+        2. **Compliance Validation**: Validate UN hazardous material codes against transport mode restrictions 
+        (air/sea/road/rail), check emission thresholds (EU ETS compliance), and verify multimodal transitions.
+
+        3. **Scenario Simulation**: Model impacts of disruptions like delays, route changes, or mode switches. 
+        Calculate emission estimates and assess timeline feasibility.
+
+        4. **Verifiable Logging**: Create tamper-evident hash-chained logs of decisions for audit trails and 
+        dispute resolution using the compliance logging action.
+
+
+        When users provide shipment details (origin, destination, cargo type, weight, UN codes, timeline), you should:
+
+        - Validate compliance using the validate-compliance action
+        - Flag potential issues (e.g., hazmat restrictions, timeline conflicts, emission thresholds)
+        - Suggest adaptations (alternate routes, mode changes, timeline adjustments)
+        - Log critical decisions using the log-compliance-decision action
+        - Provide clear explanations for intermediate-level logistics professionals
+
+
+        For multimodal shipments (e.g., sea-to-air), validate each leg separately and check transition rules. 
+        For perishables, verify temperature requirements and transit time limits. For hazmat, cross-check UN codes 
+        against IATA, EU, and IMO regulations.
+
+
+        Always ask clarifying questions if shipment details are incomplete (e.g., missing cargo type, weight, or 
+        transport mode). Prioritize safety and regulatory compliance over speed or cost.
       conversationStarters:
-        - Log a message to Forge logs
+        - Analyze a new shipment for potential disruptions
+        - Validate UN code compliance for air transport
+        - Calculate emissions for a multimodal route
+        - Log a route change decision with verifiable proof
+        - Check if my shipment timeline is feasible
       actions:
-        - hello-world-logger
+        - validate-compliance
+        - log-compliance-decision
+        - calculate-emissions
   action:
-    - key: hello-world-logger
-      name: Log a message
-      function: messageLogger
-      actionVerb: GET
+    - key: validate-compliance
+      name: Validate Shipment Compliance
+      function: validateCompliance
+      actionType: search
       description: >
-        When a user asks to log a message, this action logs the message to the
-        Forge logs.
+        Validates shipment details against embedded compliance rules (UN codes, transport mode restrictions, 
+        multimodal transitions). Returns validation results with flagged issues and recommendations.
       inputs:
-        message:
-          title: Message
+        unCode:
+          title: UN Hazardous Material Code
+          type: string
+          required: false
+          description: "UN code for hazardous materials (e.g., UN1203, UN2814). Leave empty for non-hazmat cargo."
+        transportMode:
+          title: Transport Mode
           type: string
           required: true
-          description: |
-            "The message that the user has requested be logged to Forge logs"
+          description: "Primary transport mode: air, sea, road, or rail"
+        cargoType:
+          title: Cargo Type
+          type: string
+          required: true
+          description: "Cargo category: hazmat, perishable, general, or temperature-controlled"
+        weight:
+          title: Cargo Weight (kg)
+          type: number
+          required: true
+          description: "Total cargo weight in kilograms"
+    - key: log-compliance-decision
+      name: Log Compliance Decision
+      function: logComplianceDecision
+      actionType: create
+      description: >
+        Creates a verifiable hash-chained log entry for compliance decisions. Generates tamper-evident audit 
+        trail for regulatory reviews or dispute resolution.
+      inputs:
+        action:
+          title: Decision Action
+          type: string
+          required: true
+          description: "Type of decision: route_change, compliance_check, mode_switch, approval, or rejection"
+        shipmentId:
+          title: Shipment Identifier
+          type: string
+          required: true
+          description: "Unique shipment ID (e.g., SHIP-2025-001 or Jira issue key)"
+        outcome:
+          title: Decision Outcome
+          type: string
+          required: true
+          description: "Decision outcome details (e.g., 'Approved for cargo aircraft only', 'Route changed to avoid delay')"
+        notes:
+          title: Additional Notes
+          type: string
+          required: false
+          description: "Optional context or justification for the decision"
+    - key: calculate-emissions
+      name: Calculate Shipment Emissions
+      function: calculateEmissions
+      actionType: search
+      description: >
+        Calculates carbon emissions for shipment based on route, weight, and transport mode. 
+        Checks against EU ETS thresholds and recommends carbon offsets if needed.
+      inputs:
+        origin:
+          title: Origin Location
+          type: string
+          required: true
+          description: "Starting location (city, port code, or coordinates)"
+        destination:
+          title: Destination Location
+          type: string
+          required: true
+          description: "Ending location (city, port code, or coordinates)"
+        transportMode:
+          title: Transport Mode
+          type: string
+          required: true
+          description: "Transport mode: air, sea, road, or rail"
+        weight:
+          title: Cargo Weight (kg)
+          type: number
+          required: true
+          description: "Total cargo weight in kilograms"
+        distance:
+          title: Distance (km)
+          type: number
+          required: false
+          description: "Optional: Route distance in kilometers. If not provided, will estimate based on locations."
   function:
-    - key: messageLogger
-      handler: index.messageLogger
+    - key: validateCompliance
+      handler: index.validateCompliance
+    - key: logComplianceDecision
+      handler: index.logComplianceDecision
+    - key: calculateEmissions
+      handler: index.calculateEmissions
+    - key: shipment-panel-resolver
+      handler: index.shipmentPanelResolver
+    - key: workflow-validator
+      handler: index.workflowValidator
+    - key: workflow-postfunction
+      handler: index.workflowPostFunction
+    - key: issue-created-handler
+      handler: index.issueCreatedHandler
+    - key: issue-updated-handler
+      handler: index.issueUpdatedHandler
+    - key: log-macro-renderer
+      handler: index.logMacroRenderer
+  jira:customField:
+    - key: un-code-field
+      name: UN Hazmat Code
+      description: UN hazardous material classification code (e.g., UN1203, UN2814)
+      type: string
+      formatter:
+        expression: "return `UN Code: ${issue.fields['customfield_${fieldId}'] || 'Not specified'}`;"
+    - key: transport-modes-field
+      name: Transport Modes
+      description: Selected transport modes for multimodal shipments
+      type: string
+      formatter:
+        expression: "return `Modes: ${issue.fields['customfield_${fieldId}'] || 'Not specified'}`;"
+    - key: shipment-timeline-field
+      name: Shipment Timeline
+      description: Pickup and delivery dates for timeline validation
+      type: string
+      formatter:
+        expression: "return `Timeline: ${issue.fields['customfield_${fieldId}'] || 'Not specified'}`;"
+  jira:issuePanel:
+    - key: shipment-data-panel
+      title: LogiBrew Shipment Manager
+      icon: https://developer.atlassian.com/platform/forge/images/icons/issue-panel-icon.svg
+      function: shipment-panel-resolver
+  jira:workflowValidator:
+    - key: compliance-validator
+      name: LogiBrew Compliance Validator
+      description: Validates shipment compliance (UN codes, emissions, perishables) before workflow transitions
+      function: workflow-validator
+  jira:workflowPostFunction:
+    - key: log-decision-postfunction
+      name: LogiBrew Decision Logger
+      description: Generates hash-verified logs and syncs to Confluence after transitions
+      function: workflow-postfunction
+  trigger:
+    - key: issue-created-trigger
+      function: issue-created-handler
+      events:
+        - avi:jira:created:issue
+    - key: issue-updated-trigger  
+      function: issue-updated-handler
+      events:
+        - avi:jira:updated:issue
+      filter:
+        ignoreSelf: true
+  confluence:macro:
+    - key: verifiable-log-macro
+      title: LogiBrew Verifiable Logs
+      description: Embeds hash-verified decision logs and AI insights in Confluence pages
+      function: log-macro-renderer
 app:
   runtime:
     name: nodejs24.x
     memoryMB: 256
     architecture: arm64
   id: ari:cloud:ecosystem::app/53aa443d-a39c-4b15-a39d-b4c03fd0f666
+permissions:
+  scopes:
+    - storage:app
+    - read:jira-work
+    - manage:jira-configuration
+    - write:confluence-content
+    - read:confluence-content.all

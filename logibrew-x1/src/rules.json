@@ -1,0 +1,305 @@
+{
+  "complianceRules": {
+    "unCodes": {
+      "description": "UN hazardous material codes with transport mode restrictions",
+      "rules": [
+        {
+          "code": "UN1203",
+          "name": "Gasoline/Petrol",
+          "class": "3",
+          "packingGroup": "II",
+          "restrictions": {
+            "air": {
+              "allowed": true,
+              "maxQuantity": "60L",
+              "passengerAircraft": false,
+              "cargoAircraft": true,
+              "notes": "Forbidden on passenger aircraft"
+            },
+            "sea": {
+              "allowed": true,
+              "maxQuantity": "unlimited",
+              "specialProvisions": ["SP-223"]
+            },
+            "road": {
+              "allowed": true,
+              "maxQuantity": "unlimited"
+            },
+            "rail": {
+              "allowed": true,
+              "maxQuantity": "unlimited"
+            }
+          }
+        },
+        {
+          "code": "UN1950",
+          "name": "Aerosols (flammable)",
+          "class": "2.1",
+          "packingGroup": null,
+          "restrictions": {
+            "air": {
+              "allowed": true,
+              "maxQuantity": "75kg",
+              "passengerAircraft": true,
+              "cargoAircraft": true,
+              "notes": "Limited quantity allowed on passenger aircraft"
+            },
+            "sea": {
+              "allowed": true,
+              "maxQuantity": "unlimited"
+            },
+            "road": {
+              "allowed": true,
+              "maxQuantity": "unlimited"
+            },
+            "rail": {
+              "allowed": true,
+              "maxQuantity": "unlimited"
+            }
+          }
+        },
+        {
+          "code": "UN2814",
+          "name": "Infectious substance (affecting humans)",
+          "class": "6.2",
+          "packingGroup": null,
+          "restrictions": {
+            "air": {
+              "allowed": true,
+              "maxQuantity": "50ml/50g",
+              "passengerAircraft": false,
+              "cargoAircraft": true,
+              "notes": "Forbidden on passenger aircraft. Requires specialized packaging"
+            },
+            "sea": {
+              "allowed": true,
+              "maxQuantity": "unlimited",
+              "specialProvisions": ["SP-134"]
+            },
+            "road": {
+              "allowed": true,
+              "maxQuantity": "50kg"
+            },
+            "rail": {
+              "allowed": true,
+              "maxQuantity": "50kg"
+            }
+          }
+        },
+        {
+          "code": "UN1789",
+          "name": "Hydrochloric acid",
+          "class": "8",
+          "packingGroup": "II",
+          "restrictions": {
+            "air": {
+              "allowed": true,
+              "maxQuantity": "30L",
+              "passengerAircraft": true,
+              "cargoAircraft": true,
+              "notes": "Corrosive substance - specialized containers required"
+            },
+            "sea": {
+              "allowed": true,
+              "maxQuantity": "unlimited"
+            },
+            "road": {
+              "allowed": true,
+              "maxQuantity": "unlimited"
+            },
+            "rail": {
+              "allowed": true,
+              "maxQuantity": "unlimited"
+            }
+          }
+        },
+        {
+          "code": "UN1845",
+          "name": "Carbon dioxide, solid (dry ice)",
+          "class": "9",
+          "packingGroup": "III",
+          "restrictions": {
+            "air": {
+              "allowed": true,
+              "maxQuantity": "200kg",
+              "passengerAircraft": true,
+              "cargoAircraft": true,
+              "notes": "Must be ventilated packaging. Used for cooling perishables"
+            },
+            "sea": {
+              "allowed": true,
+              "maxQuantity": "unlimited"
+            },
+            "road": {
+              "allowed": true,
+              "maxQuantity": "unlimited"
+            },
+            "rail": {
+              "allowed": true,
+              "maxQuantity": "unlimited"
+            }
+          }
+        }
+      ]
+    },
+    "emissionThresholds": {
+      "description": "EU ETS and carbon emission compliance limits",
+      "rules": [
+        {
+          "regulation": "EU_ETS",
+          "threshold": 500,
+          "unit": "kg_co2",
+          "scope": "per_shipment",
+          "action": "reporting_required",
+          "notes": "Shipments exceeding 500kg CO2 require EU ETS compliance reporting"
+        },
+        {
+          "regulation": "GENERAL_CARBON_OFFSET",
+          "threshold": 1000,
+          "unit": "kg_co2",
+          "scope": "per_shipment",
+          "action": "offset_recommended",
+          "notes": "Recommend carbon offset purchase for high-emission shipments"
+        }
+      ],
+      "emissionFactors": {
+        "description": "kg CO2 per ton-kilometer by transport mode",
+        "air": 0.5,
+        "sea": 0.01,
+        "road": 0.1,
+        "rail": 0.05
+      }
+    },
+    "multimodalTransport": {
+      "description": "Rules for validating multimodal shipment transitions",
+      "rules": [
+        {
+          "transition": "sea_to_air",
+          "validationRequired": true,
+          "checks": [
+            "UN code must be valid for both sea and air transport",
+            "Weight limits recalculated for air segment",
+            "Temperature-controlled cargo requires specialized containers"
+          ],
+          "commonIssues": [
+            "Hazmat forbidden on passenger aircraft",
+            "Perishables may exceed air transit time limits"
+          ]
+        },
+        {
+          "transition": "road_to_rail",
+          "validationRequired": true,
+          "checks": [
+            "Container compatibility for rail loading",
+            "Weight distribution for rail safety"
+          ],
+          "commonIssues": [
+            "Oversized road containers may not fit rail gauges"
+          ]
+        },
+        {
+          "transition": "air_to_sea",
+          "validationRequired": false,
+          "checks": [
+            "Standard transition - minimal restrictions"
+          ],
+          "commonIssues": []
+        },
+        {
+          "transition": "rail_to_road",
+          "validationRequired": false,
+          "checks": [
+            "Standard transition - minimal restrictions"
+          ],
+          "commonIssues": []
+        }
+      ]
+    },
+    "perishableGoods": {
+      "description": "Temperature and timeline rules for perishable cargo",
+      "rules": [
+        {
+          "category": "frozen",
+          "temperatureRange": {
+            "min": -25,
+            "max": -18,
+            "unit": "celsius"
+          },
+          "maxTransitDays": {
+            "air": 3,
+            "sea": 30,
+            "road": 7,
+            "rail": 14
+          },
+          "notes": "Requires continuous cold chain. Dry ice (UN1845) commonly used"
+        },
+        {
+          "category": "refrigerated",
+          "temperatureRange": {
+            "min": 2,
+            "max": 8,
+            "unit": "celsius"
+          },
+          "maxTransitDays": {
+            "air": 2,
+            "sea": 14,
+            "road": 5,
+            "rail": 10
+          },
+          "notes": "Common for pharmaceuticals and fresh produce"
+        },
+        {
+          "category": "temperature_controlled",
+          "temperatureRange": {
+            "min": 15,
+            "max": 25,
+            "unit": "celsius"
+          },
+          "maxTransitDays": {
+            "air": 5,
+            "sea": 45,
+            "road": 14,
+            "rail": 21
+          },
+          "notes": "Common for electronics and sensitive chemicals"
+        }
+      ]
+    },
+    "routeValidation": {
+      "description": "Basic route validation checks",
+      "rules": [
+        {
+          "check": "origin_destination_mismatch",
+          "severity": "error",
+          "message": "Origin and destination cannot be the same location"
+        },
+        {
+          "check": "transport_mode_required",
+          "severity": "error",
+          "message": "At least one transport mode must be specified"
+        },
+        {
+          "check": "timeline_conflict",
+          "severity": "warning",
+          "message": "Pickup date must be before delivery date"
+        },
+        {
+          "check": "unrealistic_timeline",
+          "severity": "warning",
+          "message": "Transit time may be insufficient for selected route and mode"
+        }
+      ]
+    }
+  },
+  "metadata": {
+    "version": "1.0.0",
+    "lastUpdated": "2025-12-21",
+    "sources": [
+      "IATA Dangerous Goods Regulations (DGR)",
+      "EU Emissions Trading System (ETS)",
+      "IMO International Maritime Dangerous Goods Code"
+    ],
+    "maintainer": "LogiBrew Team",
+    "updateFrequency": "quarterly"
+  }
+}
