@@ -5,11 +5,12 @@
  * Uses @forge/react UI Kit components ONLY.
  */
 
-import React, { useState } from 'react';
 import ForgeReconciler, { 
+  useState,
   Form, 
   FormSection, 
   FormFooter,
+  Label,
   Textfield, 
   Select,
   Button,
@@ -100,10 +101,10 @@ const App = () => {
             <Stack space="space.100">
               {validationResult.issues.map((issue, idx) => (
                 <Stack key={idx} space="space.050">
-                  <Inline space="space.100">
+                  <Stack space="space.050">
                     <Badge appearance="removed">{issue.type}</Badge>
                     <Text>{issue.message}</Text>
-                  </Inline>
+                  </Stack>
                   {issue.recommendation && (
                     <Text appearance="subtle">→ {issue.recommendation}</Text>
                   )}
@@ -119,10 +120,10 @@ const App = () => {
             <Stack space="space.100">
               {validationResult.warnings.map((warning, idx) => (
                 <Stack key={idx} space="space.050">
-                  <Inline space="space.100">
+                  <Stack space="space.050">
                     <Badge appearance="primary">{warning.type}</Badge>
                     <Text>{warning.message}</Text>
-                  </Inline>
+                  </Stack>
                   {warning.recommendation && (
                     <Text appearance="subtle">→ {warning.recommendation}</Text>
                   )}
@@ -164,12 +165,12 @@ const App = () => {
         <Heading size="small">Carbon Emissions Analysis</Heading>
         
         {/* Total Emissions */}
-        <Inline space="space.100" alignBlock="center">
+        <Stack space="space.050">
           <Text>Total Emissions:</Text>
           <Badge appearance={emissionResult.emissions.total > 500 ? 'removed' : 'success'}>
             {emissionResult.emissions.total} kg CO₂
           </Badge>
-        </Inline>
+        </Stack>
 
         {/* EU ETS Compliance */}
         {emissionResult.compliance && emissionResult.compliance.euEts && (
@@ -214,30 +215,33 @@ const App = () => {
         <FormSection>
           <Stack space="space.200">
             {/* Route Information */}
+            <Label labelFor="origin">Origin</Label>
             <Textfield
               name="origin"
-              label="Origin"
+              id="origin"
               placeholder="e.g., Singapore, SGSIN"
               value={formData.origin}
-              onChange={(e) => handleFieldChange('origin', e.target.value)}
+              onChange={(e) => handleFieldChange('origin', String(e.target?.value || ''))}
               isRequired
             />
 
+            <Label labelFor="destination">Destination</Label>
             <Textfield
               name="destination"
-              label="Destination"
+              id="destination"
               placeholder="e.g., Rotterdam, NLRTM"
               value={formData.destination}
-              onChange={(e) => handleFieldChange('destination', e.target.value)}
+              onChange={(e) => handleFieldChange('destination', String(e.target?.value || ''))}
               isRequired
             />
 
             {/* Cargo Details */}
+            <Label labelFor="cargoType">Cargo Type</Label>
             <Select
               name="cargoType"
-              label="Cargo Type"
+              id="cargoType"
               value={formData.cargoType}
-              onChange={(e) => handleFieldChange('cargoType', e.target.value)}
+              onChange={(e) => handleFieldChange('cargoType', String(e.target?.value || ''))}
               isRequired
             >
               <option value="">Select cargo type</option>
@@ -247,34 +251,38 @@ const App = () => {
               <option value="temperature-controlled">Temperature-Controlled</option>
             </Select>
 
+            <Label labelFor="weight">Cargo Weight (kg)</Label>
             <Textfield
               name="weight"
-              label="Cargo Weight (kg)"
+              id="weight"
               type="number"
               placeholder="e.g., 5000"
               value={formData.weight}
-              onChange={(e) => handleFieldChange('weight', e.target.value)}
+              onChange={(e) => handleFieldChange('weight', String(e.target?.value || ''))}
               isRequired
             />
 
-            {/* Hazmat-specific field */}
             {formData.cargoType === 'hazmat' && (
-              <Textfield
-                name="unCode"
-                label="UN Hazmat Code"
-                placeholder="e.g., UN1203, UN2814"
-                description="Required for hazardous materials. Format: UNXXXX"
-                value={formData.unCode}
-                onChange={(e) => handleFieldChange('unCode', e.target.value)}
-              />
+              <>
+                <Label labelFor="unCode">UN Hazmat Code</Label>
+                <Textfield
+                  name="unCode"
+                  id="unCode"
+                  placeholder="e.g., UN1203, UN2814"
+                  value={formData.unCode}
+                  onChange={(e) => handleFieldChange('unCode', String(e.target?.value || ''))}
+                />
+                <Text appearance="subtle">Required for hazardous materials. Format: UNXXXX</Text>
+              </>
             )}
 
             {/* Transport Mode */}
+            <Label labelFor="transportMode">Primary Transport Mode</Label>
             <Select
               name="transportMode"
-              label="Primary Transport Mode"
+              id="transportMode"
               value={formData.transportMode}
-              onChange={(e) => handleFieldChange('transportMode', e.target.value)}
+              onChange={(e) => handleFieldChange('transportMode', String(e.target?.value || ''))}
               isRequired
             >
               <option value="">Select transport mode</option>
@@ -316,8 +324,4 @@ const App = () => {
   );
 };
 
-ForgeReconciler.render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>
-);
+ForgeReconciler.render(<App />);

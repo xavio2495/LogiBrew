@@ -5,8 +5,9 @@
  * Shows compliance status, delay predictions, and recommended actions.
  */
 
-import React, { useEffect, useState } from 'react';
 import ForgeReconciler, {
+  useEffect,
+  useState,
   Stack,
   Heading,
   Text,
@@ -81,14 +82,14 @@ const App = () => {
       {/* Compliance Status */}
       {insights.compliance && (
         <Stack space="space.100">
-          <Inline space="space.100" alignBlock="center">
+          <Stack space="space.100">
             <Heading size="small">Compliance Status</Heading>
             {insights.compliance.isValid ? (
               <Badge appearance="success">Valid</Badge>
             ) : (
               <Badge appearance="removed">Issues Found</Badge>
             )}
-          </Inline>
+          </Stack>
           
           {!insights.compliance.isValid && insights.compliance.issues && (
             <SectionMessage appearance="warning">
@@ -114,7 +115,7 @@ const App = () => {
       {/* Delay Predictions */}
       {insights.delays && (
         <Stack space="space.100">
-          <Inline space="space.100" alignBlock="center">
+          <Stack space="space.100">
             <Heading size="small">Delay Risk</Heading>
             {insights.delays.riskLevel === 'high' ? (
               <Badge appearance="removed">High Risk</Badge>
@@ -123,7 +124,7 @@ const App = () => {
             ) : (
               <Badge appearance="success">Low Risk</Badge>
             )}
-          </Inline>
+          </Stack>
           
           {insights.delays.prediction && (
             <SectionMessage 
@@ -150,12 +151,12 @@ const App = () => {
           <Heading size="small">Recommended Actions</Heading>
           <Stack space="space.100">
             {insights.actions.map((action, idx) => (
-              <Inline key={idx} space="space.100" alignBlock="center">
+              <Stack key={idx} space="space.050">
                 <Text>{action.label}</Text>
                 {action.priority === 'urgent' && (
                   <Badge appearance="removed">Urgent</Badge>
                 )}
-              </Inline>
+              </Stack>
             ))}
           </Stack>
         </Stack>
@@ -175,8 +176,4 @@ const App = () => {
   );
 };
 
-ForgeReconciler.render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>
-);
+ForgeReconciler.render(<App />);

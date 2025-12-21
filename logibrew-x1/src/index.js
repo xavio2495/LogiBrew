@@ -5,9 +5,10 @@
  * for logistics disruption management.
  */
 
-import complianceRules from './rules.json';
-import { generateHash, logComplianceDecision as logToHashChain } from './hashChain.js';
-import { storage } from '@forge/api';
+const complianceRules = require('./rules.json');
+const { generateHash, logComplianceDecision: logToHashChain } = require('./hashChain.js');
+const { storage } = require('@forge/api');
+const Resolver = require('@forge/resolver').default;
 
 /**
  * Validate Compliance Action Handler
@@ -22,7 +23,7 @@ import { storage } from '@forge/api';
  * @param {number} payload.weight - Cargo weight in kg
  * @returns {Object} Validation result with issues and recommendations
  */
-export async function validateCompliance(payload) {
+async function validateCompliance(payload) {
   console.log('Starting compliance validation:', payload);
   
   // Input validation and sanitization
@@ -187,7 +188,7 @@ export async function validateCompliance(payload) {
       }
     }
 
-    // Validate perishable goods
+    // Check for perishable/temperature-controlled cargo
     if (cargoType === 'perishable' || cargoType === 'temperature-controlled') {
       const perishableRules = complianceRules.complianceRules.perishableGoods.rules;
       const category = cargoType === 'perishable' ? 'refrigerated' : 'temperature_controlled';
@@ -263,7 +264,7 @@ export async function validateCompliance(payload) {
  * @param {string} payload.notes - Optional context/justification
  * @returns {Object} Log entry with hash and verification details
  */
-export async function logComplianceDecision(payload) {
+async function logComplianceDecision(payload) {
   console.log('Logging compliance decision:', payload);
 
   try {
@@ -329,7 +330,7 @@ export async function logComplianceDecision(payload) {
  * @param {number} payload.distance - Optional route distance in km
  * @returns {Object} Emission calculation result with compliance status
  */
-export async function calculateEmissions(payload) {
+async function calculateEmissions(payload) {
   console.log('Calculating emissions:', payload);
 
   // Input validation and sanitization
@@ -486,7 +487,7 @@ export async function calculateEmissions(payload) {
  * @param {string} payload.transportMode - Transport mode
  * @returns {Object} Combined validation and emission results
  */
-export async function shipmentPanelResolver(payload) {
+async function shipmentPanelResolver(payload) {
   console.log('Shipment panel resolver invoked:', payload);
 
   try {
@@ -617,8 +618,6 @@ shipmentResolver.define('validateShipmentData', async (req) => {
   }
 });
 
-export const shipmentPanelResolverDefs = shipmentResolver.getDefinitions();
-
 /**
  * Workflow Validator Handler
  * 
@@ -631,7 +630,7 @@ export const shipmentPanelResolverDefs = shipmentResolver.getDefinitions();
  * @param {Object} args.configuration - Validator configuration (if any)
  * @returns {Object} Validation result with errorMessage if validation fails
  */
-export async function workflowValidator(args) {
+async function workflowValidator(args) {
   console.log('Workflow validator invoked:', args);
 
   try {
@@ -724,7 +723,7 @@ export async function workflowValidator(args) {
  * @param {Object} event.changelog - Field changes during transition
  * @returns {Promise<void>}
  */
-export async function workflowPostFunction(event) {
+async function workflowPostFunction(event) {
   console.log('Workflow post function invoked:', event);
 
   try {
@@ -995,7 +994,7 @@ Please review and approve this shipment transition.
  * @param {Object} event.issue - Created issue data
  * @returns {Promise<void>}
  */
-export async function issueCreatedHandler(event) {
+async function issueCreatedHandler(event) {
   console.log('Issue created trigger:', event);
 
   try {
@@ -1045,7 +1044,7 @@ export async function issueCreatedHandler(event) {
  * @param {Object} event.changelog - Field changes
  * @returns {Promise<void>}
  */
-export async function issueUpdatedHandler(event) {
+async function issueUpdatedHandler(event) {
   console.log('Issue updated trigger:', event);
 
   try {
@@ -1097,7 +1096,7 @@ export async function issueUpdatedHandler(event) {
  * @param {string} config.shipmentId - Shipment/issue ID to display logs for
  * @returns {Object} Rendered macro content
  */
-export async function logMacroRenderer(config) {
+async function logMacroRenderer(config) {
   console.log('Log macro renderer invoked:', config);
 
   try {
@@ -1122,7 +1121,7 @@ export async function logMacroRenderer(config) {
     }
 
     // Verify chain integrity
-    const { verifyChain } = await import('../reference/hashChain.js');
+    const { verifyChain } = await import('./hashChain.js');
     const isValid = verifyChain(logChain);
 
     // Build Confluence ADF content
@@ -1184,8 +1183,6 @@ export async function logMacroRenderer(config) {
  * The actual resolver name used in invoke() is defined in the resolver below.
  */
 
-import Resolver from '@forge/resolver';
-
 const macroResolverInstance = new Resolver();
 
 macroResolverInstance.define('getMacroLogs', async (req) => {
@@ -1209,7 +1206,7 @@ macroResolverInstance.define('getMacroLogs', async (req) => {
     }
 
     // Verify chain integrity
-    const { verifyChain } = await import('../reference/hashChain.js');
+    const { verifyChain } = await import('./hashChain.js');
     const isValid = verifyChain(logChain);
     const rootHash = logChain[logChain.length - 1]?.hash;
 
@@ -1226,8 +1223,6 @@ macroResolverInstance.define('getMacroLogs', async (req) => {
     throw new Error(`Failed to retrieve logs: ${error.message}`);
   }
 });
-
-export const logMacroResolver = macroResolverInstance.getDefinitions();
 
 /**
  * Dashboard Gadget Resolver
@@ -1316,8 +1311,6 @@ dashboardResolverInstance.define('getDashboardMetrics', async (req) => {
   }
 });
 
-export const dashboardResolver = dashboardResolverInstance.getDefinitions();
-
 /**
  * JSM Panel Resolver
  * 
@@ -1397,8 +1390,6 @@ jsmPanelResolverInstance.define('getJsmInsights', async (req) => {
     throw new Error(`Failed to retrieve JSM insights: ${error.message}`);
   }
 });
-
-export const jsmPanelResolver = jsmPanelResolverInstance.getDefinitions();
 
 /**
  * Knowledge Base Resolver
@@ -1524,8 +1515,6 @@ knowledgeBaseResolverInstance.define('getKnowledgeBase', async (req) => {
   }
 });
 
-export const knowledgeBaseResolver = knowledgeBaseResolverInstance.getDefinitions();
-
 /**
  * Scheduled Trend Forecasting Function
  * 
@@ -1535,15 +1524,18 @@ export const knowledgeBaseResolver = knowledgeBaseResolverInstance.getDefinition
  * 
  * @returns {Promise<Object>} Forecast results
  */
-export async function scheduledTrendForecasting() {
+async function scheduledTrendForecasting() {
   console.log('Starting scheduled trend forecasting...');
   
   try {
     // 1. Retrieve all shipment chains from last 30 days
     const thirtyDaysAgo = Date.now() - (30 * 24 * 60 * 60 * 1000);
-    const allKeys = await storage.query()
-      .where('key', 'startsWith', 'shipment-')
-      .getMany();
+    
+    // Get all storage keys and filter for shipment chains
+    const allStorageKeys = await storage.query().getMany();
+    const allKeys = {
+      results: allStorageKeys.results.filter(item => item.key.startsWith('shipment-'))
+    };
     
     // Initialize aggregation structures
     const delayCauses = new Map();
@@ -1690,3 +1682,22 @@ export async function scheduledTrendForecasting() {
     };
   }
 }
+
+// Export all functions and resolvers
+module.exports = {
+  validateCompliance,
+  logComplianceDecision,
+  calculateEmissions,
+  shipmentPanelResolver,
+  shipmentPanelResolverDefs: shipmentResolver.getDefinitions(),
+  workflowValidator,
+  workflowPostFunction,
+  issueCreatedHandler,
+  issueUpdatedHandler,
+  logMacroRenderer,
+  logMacroResolver: macroResolverInstance.getDefinitions(),
+  dashboardResolver: dashboardResolverInstance.getDefinitions(),
+  jsmPanelResolver: jsmPanelResolverInstance.getDefinitions(),
+  knowledgeBaseResolver: knowledgeBaseResolverInstance.getDefinitions(),
+  scheduledTrendForecasting
+};

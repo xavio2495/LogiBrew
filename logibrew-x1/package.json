@@ -1,16 +1,22 @@
 {
   "name": "logibrew-x1",
-  "version": "1.2.3",
+  "version": "2.1.0",
   "description": "LogiBrew - AI-assisted logistics disruption management with verifiable decision-making for Atlassian Cloud",
+  "type": "module",
   "main": "index.js",
   "private": true,
   "license": "MIT",
   "scripts": {
-    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
-    "test:watch": "node --experimental-vm-modules node_modules/jest/bin/jest.js --watch",
-    "test:coverage": "node --experimental-vm-modules node_modules/jest/bin/jest.js --coverage"
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage"
   },
-  "type": "module",
+  "dependencies": {
+    "@forge/api": "^3.0.0",
+    "@forge/resolver": "^1.5.0",
+    "@forge/bridge": "^3.0.0",
+    "@forge/react": "^10.0.0"
+  },
   "devDependencies": {
     "@types/jest": "^30.0.0",
     "jest": "^30.2.0"

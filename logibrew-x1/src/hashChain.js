@@ -8,13 +8,13 @@
  * @module hashChain
  */
 
-import crypto from 'crypto';
-import { storage } from '@forge/api';
+const crypto = require('crypto');
+const { storage } = require('@forge/api');
 
 /**
  * Generate SHA-256 hash for a decision record
  */
-export function generateHash(record) {
+function generateHash(record) {
   const data = JSON.stringify({
     timestamp: record.timestamp,
     action: record.action,
@@ -32,7 +32,7 @@ export function generateHash(record) {
 /**
  * Verify integrity of a decision log chain
  */
-export function verifyChain(logChain) {
+function verifyChain(logChain) {
   if (logChain.length <= 1) {
     return true;
   }
@@ -59,7 +59,7 @@ export function verifyChain(logChain) {
 /**
  * Log a compliance decision with hash verification
  */
-export async function logComplianceDecision(decision) {
+async function logComplianceDecision(decision) {
   try {
     const previousEntry = await storage.get('latest-log-entry');
     const previousHash = previousEntry?.hash || '0';
@@ -90,3 +90,9 @@ export async function logComplianceDecision(decision) {
     throw error;
   }
 }
+
+module.exports = {
+  generateHash,
+  verifyChain,
+  logComplianceDecision
+};

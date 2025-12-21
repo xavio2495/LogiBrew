@@ -220,6 +220,15 @@ modules:
   confluence:globalPage:
     - key: knowledge-base-page
       title: LogiBrew Knowledge Base
+      icon: https://developer.atlassian.com/platform/forge/images/icons/issue [FS-1]-panel-icon.svg
+      route: logibrew-knowledge
+      resource: knowledge-base-resource
+      resolver:
+        function: knowledge-base-resolver
+      render: native
+  jira:globalPage:
+    - key: jira-knowledge-base-page
+      title: LogiBrew Knowledge Base
       icon: https://developer.atlassian.com/platform/forge/images/icons/issue-panel-icon.svg
       route: logibrew-knowledge
       resource: knowledge-base-resource

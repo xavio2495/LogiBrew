@@ -5,12 +5,13 @@
  * Calls backend resolver to retrieve and verify log chains.
  */
 
-import React, { useEffect, useState } from 'react';
-import ForgeReconciler, { 
-  Stack, 
-  Heading, 
-  Text, 
-  Spinner, 
+import ForgeReconciler, {
+  useEffect,
+  useState,
+  Stack,
+  Heading,
+  Text,
+  Spinner,
   SectionMessage,
   DynamicTable
 } from '@forge/react';
@@ -117,8 +118,4 @@ const App = () => {
   );
 };
 
-ForgeReconciler.render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>
-);
+ForgeReconciler.render(<App />);

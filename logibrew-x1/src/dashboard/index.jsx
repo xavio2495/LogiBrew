@@ -5,8 +5,9 @@
  * and trend forecasting for shipment disruptions.
  */
 
-import React, { useEffect, useState } from 'react';
 import ForgeReconciler, {
+  useEffect,
+  useState,
   Stack,
   Heading,
   Text,
@@ -172,7 +173,7 @@ const App = () => {
                 <Stack space="space.050">
                   <Text>Predictions:</Text>
                   {metrics.forecast.predictions.map((pred, idx) => (
-                    <Inline key={idx} space="space.100" alignBlock="center">
+                    <Stack key={idx} space="space.050">
                       <Badge appearance={
                         pred.severity === 'high' ? 'removed' :
                         pred.severity === 'medium' ? 'primary' :
@@ -181,7 +182,7 @@ const App = () => {
                         {pred.severity.toUpperCase()}
                       </Badge>
                       <Text>{pred.message}</Text>
-                    </Inline>
+                    </Stack>
                   ))}
                 </Stack>
               )}
@@ -206,8 +207,4 @@ const App = () => {
   );
 };
 
-ForgeReconciler.render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>
-);
+ForgeReconciler.render(<App />);

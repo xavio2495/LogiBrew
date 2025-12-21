@@ -6,9 +6,8 @@ LogiBrew is an Atlassian Forge app for logistics teams that provides AI-assisted
 **Core Concept**: Transform logistics disruptions into opportunities through traceable, AI-driven insights with hash-verified audit logs that integrate seamlessly into team workflows.
 
 **Current Implementation Status** (see [agent-docs/changelog.md](../agent-docs/changelog.md)):
-- ✅ Phase 1-2 Complete: Rovo agent, compliance actions, workflow triggers, Confluence macros
-- 🚧 Phase 3 In Progress: Dashboard gadgets, knowledge base, JSM panels
-- 📋 Phase 4 Planned: Advanced features per [Modules.md](../Modules.md)
+- ✅ Phase 1-4 Complete: Rovo agent, compliance actions, workflow triggers, Confluence macros, dashboard, JSM panels, scheduled triggers, unit tests, JSM auto-creation
+- 📋 Phase 5 Planned: Advanced analytics, external API integration, scenario simulation modals (see [agent-docs/phase-5-build-plan.md](../agent-docs/phase-5-build-plan.md))
 
 ## 🔧 CRITICAL: Using Forge Knowledge MCP Server
 
@@ -112,6 +111,53 @@ forge install --non-interactive --site <site-url> --product <product> --environm
 **ALWAYS run `pwd`** before Forge commands (except `create`, `version`, `login`) - must be in app root.
 
 **App Root**: `d:\LogiBrew\logibrew-x1\` - all Forge CLI commands MUST run from here.
+
+## Testing & Quality Assurance
+
+### Unit Testing Suite (Jest v30.2.0)
+
+**Running Tests**:
+```bash
+cd d:\LogiBrew\logibrew-x1
+npm test                  # Run all tests
+npm run test:watch       # Watch mode for development
+npm run test:coverage    # Generate coverage reports
+```
+
+**Test Files** (85 tests total, all passing):
+- `tests/validateCompliance.test.js` - 34 tests for shipment compliance validation
+- `tests/calculateEmissions.test.js` - 30 tests for carbon emission calculations
+- `tests/hashChain.test.js` - 21 tests for hash chain security
+
+**Coverage Requirements** (configured in jest.config.js):
+- Global: 30% statements, 35% branches, 20% functions, 30% lines
+- hashChain.js (security-critical): 50% statements, 65% branches/functions
+- index.js (core functions): 29% statements, 35% branches
+
+**Mock Strategy**:
+- Forge APIs mocked in `tests/__mocks__/` (forge-api, forge-bridge, forge-resolver)
+- Use mocks to avoid runtime dependencies on Forge environment
+- See [agent-docs/TESTING.md](../agent-docs/TESTING.md) for detailed test documentation
+
+**When to Add Tests**:
+- ALWAYS add tests for new compliance rules or validation logic
+- Test security-critical hash chain functions comprehensively
+- Integration testing requires deployed Forge environment (separate from unit tests)
+
+### Test Coverage Strategy
+
+**What's Tested** (unit-testable functions):
+- ✅ validateCompliance() - input validation, UN codes, transport modes, cargo types
+- ✅ calculateEmissions() - emission calculations, EU ETS compliance
+- ✅ hashChain utilities - hash generation, chain integrity, tamper detection
+
+**What's NOT Unit-Tested** (requires integration testing):
+- Forge resolvers (need runtime context)
+- JSM integration functions (need live Atlassian API)
+- UI components (require browser/Forge context)
+- Workflow handlers (need Jira workflow context)
+
+These require **integration testing** in deployed Forge environment using `forge tunnel` and live Atlassian sites.
 
 ## Resolver Pattern (CRITICAL for UI Kit Components)
 
@@ -480,13 +526,35 @@ See [reference/hashChain.js](../reference/hashChain.js) for full documentation a
 - [manifest.yml](../logibrew-x1/manifest.yml): App config, modules, scopes (lint after changes)
 - [package.json](../logibrew-x1/package.json): Dependencies (install after adding packages)
 - [src/index.js](../logibrew-x1/src/index.js): Backend function handlers
+- [src/hashChain.js](../logibrew-x1/src/hashChain.js): Hash chain implementation (imported in index.js)
+- [src/rules.json](../logibrew-x1/src/rules.json): Compliance rules database (UN codes, emissions, perishables)
 - [UI-kit.md](../UI-kit.md): Complete UI Kit component reference for LogiBrew
-- [reference/hashChain.js](../reference/hashChain.js): Complete hash chain implementation
-- [reference/mockApis.js](../reference/mockApis.js): Mock external API utilities
-- [agent-docs/changelog.md](../agent-docs/changelog.md): Development log and feature tracking
-- [AGENTS.md](../logibrew-x1/AGENTS.md): Original agent development guidelines
+- [agent-docs/changelog.md](../agent-docs/changelog.md): Development log and feature tracking (UPDATE AFTER CHANGES)
+- [agent-docs/TESTING.md](../agent-docs/TESTING.md): Test documentation and coverage strategy
+- [agent-docs/next-dev-steps.md](../agent-docs/next-dev-steps.md): Comprehensive roadmap for remaining features
+- [agent-docs/phase-5-build-plan.md](../agent-docs/phase-5-build-plan.md): Advanced features planning
+- [AGENTS.md](../logibrew-x1/AGENTS.md): Original Forge agent development guidelines
 - [README.md](../README.md): Product vision, features, technical architecture
 - [Modules.md](../Modules.md): Comprehensive Forge module reference with priorities
+
+### Development Documentation Structure
+
+**agent-docs/** - Development journal tracking all code changes, decisions, and progress:
+- **changelog.md** - CRITICAL: Update after each significant change (new module, feature, integration)
+  - Entry format: Date, Feature/Module Name, Changes Made, Implementation Details, Testing Results, Next Actions
+  - Review before making changes to understand current implementation status
+- **TESTING.md** - Test suite documentation, coverage strategy, when to add tests
+- **next-dev-steps.md** - Post-Phase 2 roadmap, immediate priorities, bug fixes
+- **phase-5-build-plan.md** - Advanced features planning (analytics, external APIs, custom UI)
+
+**When to Update agent-docs/changelog.md**:
+- ✅ After implementing a new Forge module
+- ✅ After creating or modifying reference code
+- ✅ After changing manifest.yml (scopes, permissions, modules)
+- ✅ After deploying to a new environment
+- ✅ After discovering important constraints or patterns
+- ✅ After making architectural decisions
+- ❌ Trivial formatting changes or documentation typos
 
 ## Anti-Patterns to Avoid
 - Using empty templates or `-t custom-ui` (only ui-kit authorized)
