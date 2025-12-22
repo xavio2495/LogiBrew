@@ -12,7 +12,7 @@
     "strict": false,
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "noEmit": true,
+    "noEmit": false,
     "allowJs": true,
     "checkJs": false
   },
