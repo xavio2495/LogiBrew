@@ -12,10 +12,10 @@
     "test:coverage": "jest --coverage"
   },
   "dependencies": {
-    "@forge/api": "^3.0.0",
-    "@forge/resolver": "^1.5.0",
+    "@forge/api": "^6.4.2",
     "@forge/bridge": "^4.0.0",
-    "@forge/react": "^10.0.0"
+    "@forge/react": "^10.0.0",
+    "@forge/resolver": "^1.5.0"
   },
   "devDependencies": {
     "@types/jest": "^30.0.0",

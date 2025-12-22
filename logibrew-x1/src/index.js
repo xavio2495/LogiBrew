@@ -1525,10 +1525,12 @@ knowledgeBaseResolverInstance.define('getKnowledgeBase', async (req) => {
  * Calculates rolling averages, identifies anomalies, and predicts delays.
  * Stores forecast results in Forge Storage for dashboard display.
  * 
+ * @param {Object} params - Scheduled trigger parameters
+ * @param {Object} params.context - Context object with cloudId and moduleKey
  * @returns {Promise<Object>} Forecast results
  */
-async function scheduledTrendForecasting() {
-  console.log('Starting scheduled trend forecasting...');
+export async function scheduledTrendForecasting({ context }) {
+  console.log('Starting scheduled trend forecasting for cloudId:', context?.cloudId);
   
   try {
     // 1. Retrieve all shipment chains from last 30 days
@@ -1696,8 +1698,7 @@ export {
   workflowPostFunction,
   issueCreatedHandler,
   issueUpdatedHandler,
-  logMacroRenderer,
-  scheduledTrendForecasting
+  logMacroRenderer
 };
 
 export const shipmentPanelResolverDefs = shipmentResolver.getDefinitions();

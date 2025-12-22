@@ -5,9 +5,8 @@
  * Calls backend resolver to retrieve and verify log chains.
  */
 
+import React, { useState, useEffect } from 'react';
 import ForgeReconciler, {
-  useEffect,
-  useState,
   useConfig,
   Stack,
   Heading,
@@ -19,10 +18,11 @@ import ForgeReconciler, {
 } from '@forge/react';
 import { invoke } from '@forge/bridge';
 
-const App = () => {
-  const [logData, setLogData] = useState(null);
+const App: React.FC = () => {
+  const [logData, setLogData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
+  const [retryTrigger, setRetryTrigger] = useState(0);
   
   // Get shipmentId from macro configuration
   const config = useConfig();
@@ -37,16 +37,16 @@ const App = () => {
           shipmentId: shipmentId
         });
         setLogData(result);
-      } catch (err) {
+      } catch (err: unknown) {
         console.error('Failed to fetch logs:', err);
-        setError(err.message);
+        setError(err instanceof Error ? err.message : 'Unknown error occurred');
       } finally {
         setLoading(false);
       }
     };
 
     fetchLogs();
-  }, [shipmentId]);
+  }, [shipmentId, retryTrigger]);
 
   if (loading) {
     return (
@@ -65,7 +65,7 @@ const App = () => {
         </SectionMessage>
         <Button 
           appearance="primary" 
-          onClick={() => window.location.reload()}
+          onClick={() => setRetryTrigger(prev => prev + 1)}
         >
           Retry
         </Button>
@@ -75,14 +75,14 @@ const App = () => {
 
   if (!logData || logData.chainLength === 0) {
     return (
-      <SectionMessage title="No Logs Found" appearance="info">
+      <SectionMessage title="No Logs Found" appearance="information">
         <Text>No decision logs found for this shipment. Logs will appear here as decisions are made.</Text>
       </SectionMessage>
     );
   }
 
   // Build table rows from log chain
-  const rows = (logData?.chain || []).map((entry, idx) => ({
+  const rows = (logData?.chain || []).map((entry: { action: string; timestamp: number; hash?: string }, idx: number) => ({
     key: `log-${idx}`,
     cells: [
       { content: idx + 1 },
@@ -94,7 +94,7 @@ const App = () => {
 
   return (
     <Stack space="space.200">
-      <Heading size="medium">
+      <Heading as="h2">
         {logData.isValid ? '✓ Verified Decision Logs' : '✗ TAMPERED LOGS DETECTED'}
       </Heading>
 

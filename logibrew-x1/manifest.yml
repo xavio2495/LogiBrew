@@ -219,7 +219,7 @@ modules:
         - unlicensed
   confluence:globalPage:
     - key: knowledge-base-page
-      title: LogiBrew Knowledge Base
+      title: LogiBrew
       icon: https://developer.atlassian.com/platform/forge/images/icons/issue [FS-1]-panel-icon.svg
       route: logibrew-knowledge
       resource: knowledge-base-resource
@@ -228,7 +228,7 @@ modules:
       render: native
   jira:globalPage:
     - key: jira-knowledge-base-page
-      title: LogiBrew Knowledge Base
+      title: LogiBrew
       icon: https://developer.atlassian.com/platform/forge/images/icons/issue-panel-icon.svg
       route: logibrew-knowledge
       resource: knowledge-base-resource
@@ -307,15 +307,15 @@ modules:
             tooltip: "Status of the decision (approved, rejected, etc.)"
 resources:
   - key: shipment-panel-resource
-    path: src/shipment-panel/index.jsx
+    path: src/shipment-panel/index.tsx
   - key: log-macro-resource
-    path: src/macro/index.jsx
+    path: src/macro/index.tsx
   - key: dashboard-resource
-    path: src/dashboard/index.jsx
+    path: src/dashboard/index.tsx
   - key: jsm-panel-resource
-    path: src/jsm-panel/index.jsx
+    path: src/jsm-panel/index.tsx
   - key: knowledge-base-resource
-    path: src/knowledge-base/index.jsx
+    path: src/knowledge-base/index.tsx
 app:
   runtime:
     name: nodejs24.x

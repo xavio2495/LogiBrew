@@ -5,8 +5,8 @@
  * Uses @forge/react UI Kit components ONLY.
  */
 
+import React, { useState } from 'react';
 import ForgeReconciler, { 
-  useState,
   Form, 
   FormSection, 
   FormFooter,
@@ -24,7 +24,7 @@ import ForgeReconciler, {
 } from '@forge/react';
 import { invoke } from '@forge/bridge';
 
-const App = () => {
+const App: React.FC = () => {
   // Form state
   const [formData, setFormData] = useState({
     origin: '',
@@ -37,20 +37,20 @@ const App = () => {
   
   // UI state
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [validationResult, setValidationResult] = useState(null);
-  const [emissionResult, setEmissionResult] = useState(null);
+  const [validationResult, setValidationResult] = useState<any>(null);
+  const [emissionResult, setEmissionResult] = useState<any>(null);
 
   /**
    * Handle form field changes
    */
-  const handleFieldChange = (field, value) => {
+  const handleFieldChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
   /**
    * Handle form submission and trigger compliance validation
    */
-  const handleSubmit = async (formEvent) => {
+  const handleSubmit = async (formEvent: React.FormEvent<HTMLFormElement>) => {
     formEvent.preventDefault();
     setIsSubmitting(true);
     setValidationResult(null);
@@ -65,17 +65,18 @@ const App = () => {
         weight: parseFloat(formData.weight) || 0,
         unCode: formData.unCode || undefined,
         transportMode: formData.transportMode
-      });
+      }) as { validation: any; emissions: any };
 
       setValidationResult(result.validation);
       setEmissionResult(result.emissions);
-    } catch (error) {
+    } catch (error: unknown) {
       setValidationResult({
         isValid: false,
         issues: [{
           type: 'ERROR',
           severity: 'error',
-          message: `Validation failed: ${error.message}`,
+          message: `Validation failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+
           recommendation: 'Please check your input and try again.'
         }],
         warnings: [],
@@ -98,14 +99,14 @@ const App = () => {
         {validationResult.issues && validationResult.issues.length > 0 && (
           <SectionMessage appearance="error" title="Compliance Issues">
             <Stack space="space.100">
-              {validationResult.issues.map((issue, idx) => (
+              {validationResult.issues.map((issue: { type: string; message: string; recommendation?: string }, idx: number) => (
                 <Stack key={idx} space="space.050">
                   <Stack space="space.050">
                     <Badge appearance="removed">{issue.type}</Badge>
                     <Text>{issue.message}</Text>
                   </Stack>
                   {issue.recommendation && (
-                    <Text appearance="subtle">→ {issue.recommendation}</Text>
+                    <Text>→ {issue.recommendation}</Text>
                   )}
                 </Stack>
               ))}
@@ -117,14 +118,14 @@ const App = () => {
         {validationResult.warnings && validationResult.warnings.length > 0 && (
           <SectionMessage appearance="warning" title="Warnings">
             <Stack space="space.100">
-              {validationResult.warnings.map((warning, idx) => (
+              {validationResult.warnings.map((warning: { type: string; message: string; recommendation?: string }, idx: number) => (
                 <Stack key={idx} space="space.050">
                   <Stack space="space.050">
                     <Badge appearance="primary">{warning.type}</Badge>
                     <Text>{warning.message}</Text>
                   </Stack>
                   {warning.recommendation && (
-                    <Text appearance="subtle">→ {warning.recommendation}</Text>
+                    <Text>→ {warning.recommendation}</Text>
                   )}
                 </Stack>
               ))}
@@ -143,7 +144,7 @@ const App = () => {
         {validationResult.recommendations && validationResult.recommendations.length > 0 && (
           <SectionMessage appearance="information" title="Recommendations">
             <Stack space="space.050">
-              {validationResult.recommendations.map((rec, idx) => (
+              {validationResult.recommendations.map((rec: string, idx: number) => (
                 <Text key={idx}>• {rec}</Text>
               ))}
             </Stack>
@@ -161,12 +162,12 @@ const App = () => {
 
     return (
       <Stack space="space.200">
-        <Heading size="small">Carbon Emissions Analysis</Heading>
+        <Heading as="h3">Carbon Emissions Analysis</Heading>
         
         {/* Total Emissions */}
         <Stack space="space.050">
           <Text>Total Emissions:</Text>
-          <Badge appearance={emissionResult.emissions.total > 500 ? 'removed' : 'success'}>
+          <Badge appearance={emissionResult.emissions.total > 500 ? 'removed' : 'default'}>
             {emissionResult.emissions.total} kg CO₂
           </Badge>
         </Stack>
@@ -183,7 +184,7 @@ const App = () => {
 
         {/* Emission Breakdown */}
         <Stack space="space.050">
-          <Text appearance="subtle">Breakdown:</Text>
+          <Text>Breakdown:</Text>
           <Text>• Distance: {emissionResult.emissions.breakdown.distance} km</Text>
           <Text>• Weight: {emissionResult.emissions.breakdown.weight} kg</Text>
           <Text>• Mode: {emissionResult.emissions.breakdown.transportMode}</Text>
@@ -193,8 +194,8 @@ const App = () => {
         {/* Recommendations */}
         {emissionResult.recommendations && emissionResult.recommendations.length > 0 && (
           <Stack space="space.050">
-            <Text appearance="subtle">Recommendations:</Text>
-            {emissionResult.recommendations.map((rec, idx) => (
+            <Text>Recommendations:</Text>
+            {emissionResult.recommendations.map((rec: string, idx: number) => (
               <Text key={idx}>→ {rec}</Text>
             ))}
           </Stack>
@@ -205,12 +206,12 @@ const App = () => {
 
   return (
     <Stack space="space.300">
-      <Heading size="medium">LogiBrew Shipment Manager</Heading>
-      <Text appearance="subtle">
+      <Heading as="h2">LogiBrew Shipment Manager</Heading>
+      <Text>
         Enter shipment details below to validate compliance and calculate emissions.
       </Text>
 
-      <Form onSubmit={handleSubmit}>
+      <Form onSubmit={() => handleSubmit({ preventDefault: () => {} } as any)}>
         <FormSection>
           <Stack space="space.200">
             {/* Route Information */}
@@ -220,7 +221,7 @@ const App = () => {
               id="origin"
               placeholder="e.g., Singapore, SGSIN"
               value={formData.origin}
-              onChange={(e) => handleFieldChange('origin', String(e.target?.value || ''))}
+              onChange={(e) => handleFieldChange('origin', e.target.value)}
               isRequired
             />
 
@@ -230,7 +231,7 @@ const App = () => {
               id="destination"
               placeholder="e.g., Rotterdam, NLRTM"
               value={formData.destination}
-              onChange={(e) => handleFieldChange('destination', String(e.target?.value || ''))}
+              onChange={(e) => handleFieldChange('destination', e.target.value)}
               isRequired
             />
 
@@ -240,15 +241,16 @@ const App = () => {
               name="cargoType"
               id="cargoType"
               value={formData.cargoType}
-              onChange={(e) => handleFieldChange('cargoType', String(e.target?.value || ''))}
+              onChange={(e) => handleFieldChange('cargoType', e.target.value)}
+              options={[
+                { label: 'Select cargo type', value: '' },
+                { label: 'General Cargo', value: 'general' },
+                { label: 'Hazardous Materials', value: 'hazmat' },
+                { label: 'Perishable Goods', value: 'perishable' },
+                { label: 'Temperature-Controlled', value: 'temperature-controlled' }
+              ]}
               isRequired
-            >
-              <option value="">Select cargo type</option>
-              <option value="general">General Cargo</option>
-              <option value="hazmat">Hazardous Materials (Hazmat)</option>
-              <option value="perishable">Perishable Goods</option>
-              <option value="temperature-controlled">Temperature-Controlled</option>
-            </Select>
+            />
 
             <Label labelFor="weight">Cargo Weight (kg)</Label>
             <Textfield
@@ -257,7 +259,7 @@ const App = () => {
               type="number"
               placeholder="e.g., 5000"
               value={formData.weight}
-              onChange={(e) => handleFieldChange('weight', String(e.target?.value || ''))}
+              onChange={(e) => handleFieldChange('weight', e.target.value)}
               isRequired
             />
 
@@ -269,9 +271,9 @@ const App = () => {
                   id="unCode"
                   placeholder="e.g., UN1203, UN2814"
                   value={formData.unCode}
-                  onChange={(e) => handleFieldChange('unCode', String(e.target?.value || ''))}
+                  onChange={(e) => handleFieldChange('unCode', e.target.value)}
                 />
-                <Text appearance="subtle">Required for hazardous materials. Format: UNXXXX</Text>
+                <Text>Required for hazardous materials. Format: UNXXXX</Text>
               </>
             )}
 
@@ -281,15 +283,16 @@ const App = () => {
               name="transportMode"
               id="transportMode"
               value={formData.transportMode}
-              onChange={(e) => handleFieldChange('transportMode', String(e.target?.value || ''))}
+              onChange={(e) => handleFieldChange('transportMode', e.target.value)}
+              options={[
+                { label: 'Select transport mode', value: '' },
+                { label: 'Air', value: 'air' },
+                { label: 'Sea', value: 'sea' },
+                { label: 'Road', value: 'road' },
+                { label: 'Rail', value: 'rail' }
+              ]}
               isRequired
-            >
-              <option value="">Select transport mode</option>
-              <option value="air">Air</option>
-              <option value="sea">Sea</option>
-              <option value="road">Road</option>
-              <option value="rail">Rail</option>
-            </Select>
+            />
           </Stack>
         </FormSection>
 

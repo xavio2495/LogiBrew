@@ -8,9 +8,8 @@
  * No standard React or HTML elements are allowed.
  */
 
+import React, { useState, useEffect } from 'react';
 import ForgeReconciler, {
-  useEffect,
-  useState,
   Stack,
   Heading,
   Text,
@@ -26,10 +25,11 @@ import ForgeReconciler, {
 } from '@forge/react';
 import { invoke } from '@forge/bridge';
 
-const App = () => {
-  const [data, setData] = useState(null);
+const App: React.FC = () => {
+  const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [retryTrigger, setRetryTrigger] = useState(0);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchKnowledgeBase = async () => {
@@ -45,9 +45,9 @@ const App = () => {
         
         setData(result);
         console.log('[Knowledge Base] Data set successfully');
-      } catch (err) {
+      } catch (err: unknown) {
         console.error('[Knowledge Base] Failed to fetch knowledge base:', err);
-        setError(err.message || 'Unknown error occurred');
+        setError(err instanceof Error ? err.message : 'Unknown error occurred');
       } finally {
         setLoading(false);
         console.log('[Knowledge Base] Loading complete');
@@ -55,7 +55,7 @@ const App = () => {
     };
 
     fetchKnowledgeBase();
-  }, []);
+  }, [retryTrigger]);
 
   // Loading state with proper UI Kit components
   if (loading) {
@@ -76,7 +76,7 @@ const App = () => {
         </SectionMessage>
         <Button 
           appearance="primary" 
-          onClick={() => window.location.reload()}
+          onClick={() => setRetryTrigger(prev => prev + 1)}
         >
           Retry
         </Button>
@@ -88,7 +88,7 @@ const App = () => {
   if (!data) {
     return (
       <Stack space="space.300">
-        <SectionMessage title="No Data Available" appearance="info">
+        <SectionMessage title="No Data Available" appearance="information">
           <Text>Knowledge base data is not available. Please try again later.</Text>
         </SectionMessage>
       </Stack>
@@ -96,7 +96,7 @@ const App = () => {
   }
 
   // Build lessons learned table rows with defensive array handling
-  const lessonsRows = (data.lessons || []).map((lesson, idx) => {
+  const lessonsRows = (data.lessons || []).map((lesson: { category: string; issue: string; resolution: string; impact: string }, idx: number) => {
     const impactBadge = lesson.impact === 'high' ? (
       <Badge appearance="removed">High</Badge>
     ) : lesson.impact === 'medium' ? (
@@ -117,7 +117,7 @@ const App = () => {
   });
 
   // Build best practices table rows with defensive array handling
-  const practicesRows = (data.bestPractices || []).map((practice, idx) => ({
+  const practicesRows = (data.bestPractices || []).map((practice: { title: string; description: string; applicability: string }, idx: number) => ({
     key: `practice-${idx}`,
     cells: [
       { content: practice.title || 'Untitled' },
@@ -127,7 +127,7 @@ const App = () => {
   }));
 
   // Build common issues table rows with defensive array handling
-  const issuesRows = (data.commonIssues || []).map((issue, idx) => ({
+  const issuesRows = (data.commonIssues || []).map((issue: { type: string; frequency: string; avgResolutionTime: string }, idx: number) => ({
     key: `issue-${idx}`,
     cells: [
       { content: issue.type || 'Unknown' },
@@ -151,20 +151,20 @@ const App = () => {
       {/* Summary Stats Cards */}
       <Stack space="space.300">
         <Stack space="space.100">
-          <Text appearance="subtle">Total Disruptions Analyzed</Text>
-          <Heading size="medium">{data.summary?.totalDisruptions || 0}</Heading>
+          <Text>Total Disruptions Analyzed</Text>
+          <Heading as="h3">{data.summary?.totalDisruptions || 0}</Heading>
         </Stack>
         <Stack space="space.100">
-          <Text appearance="subtle">Lessons Documented</Text>
-          <Heading size="medium">{data.summary?.lessonsCount || 0}</Heading>
+          <Text>Lessons Documented</Text>
+          <Heading as="h3">{data.summary?.lessonsCount || 0}</Heading>
         </Stack>
         <Stack space="space.100">
-          <Text appearance="subtle">Best Practices</Text>
-          <Heading size="medium">{data.summary?.practicesCount || 0}</Heading>
+          <Text>Best Practices</Text>
+          <Heading as="h3">{data.summary?.practicesCount || 0}</Heading>
         </Stack>
         <Stack space="space.100">
-          <Text appearance="subtle">Avg Resolution Time</Text>
-          <Heading size="medium">{data.summary?.avgResolutionHours || 0}h</Heading>
+          <Text>Avg Resolution Time</Text>
+          <Heading as="h3">{data.summary?.avgResolutionHours || 0}h</Heading>
         </Stack>
       </Stack>
 
@@ -179,8 +179,8 @@ const App = () => {
         {/* Tab Panel 1: Lessons Learned */}
         <TabPanel>
           <Stack space="space.200">
-            <Heading size="small">Lessons Learned from Disruptions</Heading>
-            <Text appearance="subtle">
+            <Heading as="h3">Lessons Learned from Disruptions</Heading>
+            <Text>
               Key insights from past disruptions, organized by category.
               These lessons help prevent recurring issues and improve response times.
             </Text>
@@ -203,8 +203,8 @@ const App = () => {
         {/* Tab Panel 2: Best Practices */}
         <TabPanel>
           <Stack space="space.200">
-            <Heading size="small">Best Practices for Logistics Operations</Heading>
-            <Text appearance="subtle">
+            <Heading as="h3">Best Practices for Logistics Operations</Heading>
+            <Text>
               Proven strategies and procedures for handling various logistics scenarios.
               Apply these practices to maintain compliance and efficiency.
             </Text>
@@ -226,8 +226,8 @@ const App = () => {
         {/* Tab Panel 3: Common Issues */}
         <TabPanel>
           <Stack space="space.200">
-            <Heading size="small">Common Issues and Patterns</Heading>
-            <Text appearance="subtle">
+            <Heading as="h3">Common Issues and Patterns</Heading>
+            <Text>
               Frequently encountered issues with their occurrence rates and typical resolution times.
               Use this to anticipate and prepare for common disruptions.
             </Text>
@@ -257,7 +257,7 @@ const App = () => {
       </SectionMessage>
 
       {/* Last Updated Footer */}
-      <Text appearance="subtle">
+      <Text>
         Last updated: {data.lastUpdated ? new Date(data.lastUpdated).toLocaleString() : 'Unknown'}
       </Text>
     </Stack>

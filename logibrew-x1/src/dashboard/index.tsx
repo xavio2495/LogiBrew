@@ -5,9 +5,8 @@
  * and trend forecasting for shipment disruptions.
  */
 
+import React, { useState, useEffect } from 'react';
 import ForgeReconciler, {
-  useEffect,
-  useState,
   Stack,
   Heading,
   Text,
@@ -20,10 +19,11 @@ import ForgeReconciler, {
 } from '@forge/react';
 import { invoke } from '@forge/bridge';
 
-const App = () => {
-  const [metrics, setMetrics] = useState(null);
+const App: React.FC = () => {
+  const [metrics, setMetrics] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
+  const [retryTrigger, setRetryTrigger] = useState(0);
 
   useEffect(() => {
     const fetchMetrics = async () => {
@@ -31,16 +31,16 @@ const App = () => {
         // Call backend resolver to get metrics data
         const result = await invoke('getDashboardMetrics', {});
         setMetrics(result);
-      } catch (err) {
+      } catch (err: unknown) {
         console.error('Failed to fetch metrics:', err);
-        setError(err.message);
+        setError(err instanceof Error ? err.message : 'Unknown error occurred');
       } finally {
         setLoading(false);
       }
     };
 
     fetchMetrics();
-  }, []);
+  }, [retryTrigger]);
 
   if (loading) {
     return (
@@ -59,12 +59,7 @@ const App = () => {
         </SectionMessage>
         <Button 
           appearance="primary" 
-          onClick={() => {
-            setError(null);
-            setLoading(true);
-            // Trigger re-fetch by updating state
-            window.location.reload();
-          }}
+          onClick={() => setRetryTrigger(prev => prev + 1)}
         >
           Retry
         </Button>
@@ -74,20 +69,20 @@ const App = () => {
 
   if (!metrics || !metrics.data) {
     return (
-      <SectionMessage title="No Data Available" appearance="info">
+      <SectionMessage title="No Data Available" appearance="information">
         <Text>No logistics data found. Metrics will appear here as shipments are processed.</Text>
       </SectionMessage>
     );
   }
 
   // Build delay patterns chart data
-  const delayChartData = (metrics?.delayPatterns || []).map(pattern => ({
+  const delayChartData = (metrics?.delayPatterns || []).map((pattern: { cause: string; count: number }) => ({
     label: pattern.cause,
     value: pattern.count
   }));
 
   // Build recent activities table
-  const activityRows = (metrics?.recentActivities || []).map((activity, idx) => ({
+  const activityRows = (metrics?.recentActivities || []).map((activity: { shipmentId: string; action: string; timestamp: number; status: string }, idx: number) => ({
     key: `activity-${idx}`,
     cells: [
       { content: activity.shipmentId },
@@ -95,7 +90,7 @@ const App = () => {
       { content: new Date(activity.timestamp).toLocaleString() },
       { 
         content: activity.status === 'completed' ? (
-          <Badge appearance="success">Completed</Badge>
+          <Badge>Completed</Badge>
         ) : activity.status === 'pending' ? (
           <Badge appearance="primary">Pending</Badge>
         ) : (
@@ -107,38 +102,38 @@ const App = () => {
 
   return (
     <Stack space="space.300">
-      <Heading size="medium">LogiBrew Metrics Dashboard</Heading>
+      <Heading as="h2">LogiBrew Metrics Dashboard</Heading>
 
       {/* Summary Stats */}
       <Stack space="space.200">
         <Stack space="space.100">
           <Text>Total Shipments</Text>
-          <Heading size="small">{metrics?.summary?.totalShipments || 0}</Heading>
+          <Heading as="h3">{metrics?.summary?.totalShipments || 0}</Heading>
         </Stack>
         <Stack space="space.100">
           <Text>Avg Response Time</Text>
-          <Heading size="small">{metrics?.summary?.avgResponseTime || 0}h</Heading>
+          <Heading as="h3">{metrics?.summary?.avgResponseTime || 0}h</Heading>
         </Stack>
         <Stack space="space.100">
           <Text>Compliance Rate</Text>
-          <Heading size="small">{metrics?.summary?.complianceRate || 0}%</Heading>
+          <Heading as="h3">{metrics?.summary?.complianceRate || 0}%</Heading>
         </Stack>
       </Stack>
 
       {/* Delay Patterns Chart */}
       <Stack space="space.100">
-        <Heading size="small">Delay Patterns by Cause</Heading>
+        <Heading as="h3">Delay Patterns by Cause</Heading>
         <BarChart
           data={delayChartData}
           height={200}
-          xLabel="Delay Cause"
-          yLabel="Occurrences"
+          xAccessor="label"
+          yAccessor="value"
         />
       </Stack>
 
       {/* Recent Activities */}
       <Stack space="space.100">
-        <Heading size="small">Recent Activities</Heading>
+        <Heading as="h3">Recent Activities</Heading>
         <DynamicTable
           head={{
             cells: [
@@ -157,12 +152,12 @@ const App = () => {
       {/* 30-Day Trend Forecast */}
       {metrics.forecast && (
         <Stack space="space.100">
-          <Heading size="small">30-Day Trend Forecast</Heading>
+          <Heading as="h3">30-Day Trend Forecast</Heading>
           
           <SectionMessage 
             appearance={
-              metrics.forecast.predictions.some(p => p.severity === 'high') ? 'error' :
-              metrics.forecast.predictions.some(p => p.severity === 'medium') ? 'warning' : 
+              metrics.forecast.predictions.some((p: { severity: string }) => p.severity === 'high') ? 'error' :
+              metrics.forecast.predictions.some((p: { severity: string }) => p.severity === 'medium') ? 'warning' : 
               'information'
             }
           >
@@ -176,7 +171,7 @@ const App = () => {
               {metrics.forecast.topDelayCauses && metrics.forecast.topDelayCauses.length > 0 && (
                 <Stack space="space.050">
                   <Text>Top Delay Causes:</Text>
-                  {metrics.forecast.topDelayCauses.map((cause, idx) => (
+                  {metrics.forecast.topDelayCauses.map((cause: { cause: string; count: number }, idx: number) => (
                     <Text key={idx}>• {cause.cause}: {cause.count} occurrences</Text>
                   ))}
                 </Stack>
@@ -185,7 +180,7 @@ const App = () => {
               {metrics.forecast.predictions && metrics.forecast.predictions.length > 0 && (
                 <Stack space="space.050">
                   <Text>Predictions:</Text>
-                  {metrics.forecast.predictions.map((pred, idx) => (
+                  {metrics.forecast.predictions.map((pred: { severity: string; message: string }, idx: number) => (
                     <Stack key={idx} space="space.050">
                       <Badge appearance={
                         pred.severity === 'high' ? 'removed' :
@@ -203,7 +198,7 @@ const App = () => {
               {metrics.forecast.recommendations && metrics.forecast.recommendations.length > 0 && (
                 <Stack space="space.050">
                   <Text>Recommended Actions:</Text>
-                  {metrics.forecast.recommendations.map((rec, idx) => (
+                  {metrics.forecast.recommendations.map((rec: { description: string; priority: string }, idx: number) => (
                     <Text key={idx}>→ {rec.description} (Priority: {rec.priority})</Text>
                   ))}
                 </Stack>
@@ -213,7 +208,7 @@ const App = () => {
         </Stack>
       )}
 
-      <Text appearance="subtle">
+      <Text>
         Last updated: {metrics?.lastUpdated ? new Date(metrics.lastUpdated).toLocaleString() : 'N/A'}
       </Text>
     </Stack>

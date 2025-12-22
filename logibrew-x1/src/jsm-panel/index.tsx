@@ -5,9 +5,8 @@
  * Shows compliance status, delay predictions, and recommended actions.
  */
 
+import React, { useState, useEffect } from 'react';
 import ForgeReconciler, {
-  useEffect,
-  useState,
   Stack,
   Heading,
   Text,
@@ -18,11 +17,12 @@ import ForgeReconciler, {
 } from '@forge/react';
 import { invoke, view } from '@forge/bridge';
 
-const App = () => {
-  const [insights, setInsights] = useState(null);
+const App: React.FC = () => {
+  const [insights, setInsights] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [context, setContext] = useState(null);
+  const [error, setError] = useState<string | null>(null);
+  const [context, setContext] = useState<any>(null);
+  const [retryTrigger, setRetryTrigger] = useState(0);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -37,16 +37,16 @@ const App = () => {
           portalId: ctx.extension.portal.id
         });
         setInsights(result);
-      } catch (err) {
+      } catch (err: unknown) {
         console.error('Failed to fetch JSM insights:', err);
-        setError(err.message);
+        setError(err instanceof Error ? err.message : 'Unknown error occurred');
       } finally {
         setLoading(false);
       }
     };
 
     fetchData();
-  }, []);
+  }, [retryTrigger]);
 
   if (loading) {
     return (
@@ -65,7 +65,7 @@ const App = () => {
         </SectionMessage>
         <Button 
           appearance="primary" 
-          onClick={() => window.location.reload()}
+          onClick={() => setRetryTrigger(prev => prev + 1)}
         >
           Retry
         </Button>
@@ -75,7 +75,7 @@ const App = () => {
 
   if (!insights || !insights.hasData) {
     return (
-      <SectionMessage title="No Logistics Insights" appearance="info">
+      <SectionMessage title="No Logistics Insights" appearance="information">
         <Text>
           This request doesn't appear to be logistics-related, or no AI insights are available yet.
           LogiBrew provides disruption analysis and compliance checks for shipment-related requests.
@@ -90,9 +90,9 @@ const App = () => {
       {insights.compliance && (
         <Stack space="space.100">
           <Stack space="space.100">
-            <Heading size="small">Compliance Status</Heading>
+            <Heading as="h3">Compliance Status</Heading>
             {insights.compliance.isValid ? (
-              <Badge appearance="success">Valid</Badge>
+              <Badge>Valid</Badge>
             ) : (
               <Badge appearance="removed">Issues Found</Badge>
             )}
@@ -101,7 +101,7 @@ const App = () => {
           {!insights.compliance.isValid && insights.compliance.issues && (
             <SectionMessage appearance="warning">
               <Stack space="space.050">
-                {insights.compliance.issues.map((issue, idx) => (
+                {insights.compliance.issues.map((issue: { message: string }, idx: number) => (
                   <Text key={idx}>• {issue.message}</Text>
                 ))}
               </Stack>
@@ -110,8 +110,8 @@ const App = () => {
           
           {insights.compliance.recommendations && insights.compliance.recommendations.length > 0 && (
             <Stack space="space.050">
-              <Text appearance="subtle">Recommendations:</Text>
-              {insights.compliance.recommendations.map((rec, idx) => (
+              <Text>Recommendations:</Text>
+              {insights.compliance.recommendations.map((rec: string, idx: number) => (
                 <Text key={idx}>→ {rec}</Text>
               ))}
             </Stack>
@@ -123,19 +123,19 @@ const App = () => {
       {insights.delays && (
         <Stack space="space.100">
           <Stack space="space.100">
-            <Heading size="small">Delay Risk</Heading>
+            <Heading as="h3">Delay Risk</Heading>
             {insights.delays.riskLevel === 'high' ? (
               <Badge appearance="removed">High Risk</Badge>
             ) : insights.delays.riskLevel === 'medium' ? (
               <Badge appearance="primary">Medium Risk</Badge>
             ) : (
-              <Badge appearance="success">Low Risk</Badge>
+              <Badge>Low Risk</Badge>
             )}
           </Stack>
           
           {insights.delays.prediction && (
             <SectionMessage 
-              appearance={insights.delays.riskLevel === 'high' ? 'error' : 'info'}
+              appearance={insights.delays.riskLevel === 'high' ? 'error' : 'information'}
             >
               <Text>{insights.delays.prediction}</Text>
             </SectionMessage>
@@ -143,8 +143,8 @@ const App = () => {
           
           {insights.delays.factors && insights.delays.factors.length > 0 && (
             <Stack space="space.050">
-              <Text appearance="subtle">Contributing factors:</Text>
-              {insights.delays.factors.map((factor, idx) => (
+              <Text>Contributing factors:</Text>
+              {insights.delays.factors.map((factor: string, idx: number) => (
                 <Text key={idx}>• {factor}</Text>
               ))}
             </Stack>
@@ -155,9 +155,9 @@ const App = () => {
       {/* Recommended Actions */}
       {insights.actions && insights.actions.length > 0 && (
         <Stack space="space.100">
-          <Heading size="small">Recommended Actions</Heading>
+          <Heading as="h3">Recommended Actions</Heading>
           <Stack space="space.100">
-            {insights.actions.map((action, idx) => (
+            {insights.actions.map((action: { label: string; priority: string }, idx: number) => (
               <Stack key={idx} space="space.050">
                 <Text>{action.label}</Text>
                 {action.priority === 'urgent' && (
@@ -176,7 +176,7 @@ const App = () => {
         </SectionMessage>
       )}
 
-      <Text appearance="subtle">
+      <Text>
         Powered by LogiBrew AI | Request: {context?.extension?.request?.key || 'Unknown'}
       </Text>
     </Stack>
