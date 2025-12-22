@@ -14,7 +14,6 @@ import ForgeReconciler, {
   Spinner,
   SectionMessage,
   Badge,
-  Inline,
   Button
 } from '@forge/react';
 import { invoke, view } from '@forge/bridge';
@@ -60,9 +59,17 @@ const App = () => {
 
   if (error) {
     return (
-      <SectionMessage title="Error Loading Insights" appearance="error">
-        <Text>{error}</Text>
-      </SectionMessage>
+      <Stack space="space.200">
+        <SectionMessage title="Error Loading Insights" appearance="error">
+          <Text>{error}</Text>
+        </SectionMessage>
+        <Button 
+          appearance="primary" 
+          onClick={() => window.location.reload()}
+        >
+          Retry
+        </Button>
+      </Stack>
     );
   }
 
@@ -170,7 +177,7 @@ const App = () => {
       )}
 
       <Text appearance="subtle">
-        Powered by LogiBrew AI | Request: {context?.extension.request.key}
+        Powered by LogiBrew AI | Request: {context?.extension?.request?.key || 'Unknown'}
       </Text>
     </Stack>
   );

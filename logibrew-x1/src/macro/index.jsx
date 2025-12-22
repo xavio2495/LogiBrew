@@ -8,12 +8,14 @@
 import ForgeReconciler, {
   useEffect,
   useState,
+  useConfig,
   Stack,
   Heading,
   Text,
   Spinner,
   SectionMessage,
-  DynamicTable
+  DynamicTable,
+  Button
 } from '@forge/react';
 import { invoke } from '@forge/bridge';
 
@@ -21,6 +23,10 @@ const App = () => {
   const [logData, setLogData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  
+  // Get shipmentId from macro configuration
+  const config = useConfig();
+  const shipmentId = config?.shipmentId || 'default';
 
   useEffect(() => {
     const fetchLogs = async () => {
@@ -28,7 +34,7 @@ const App = () => {
         // Call backend resolver to get log chain
         // Resolver name 'getMacroLogs' is defined in the Resolver instance in index.js
         const result = await invoke('getMacroLogs', {
-          shipmentId: 'default' // TODO: Get from macro config
+          shipmentId: shipmentId
         });
         setLogData(result);
       } catch (err) {
@@ -40,7 +46,7 @@ const App = () => {
     };
 
     fetchLogs();
-  }, []);
+  }, [shipmentId]);
 
   if (loading) {
     return (
@@ -53,9 +59,17 @@ const App = () => {
 
   if (error) {
     return (
-      <SectionMessage title="Error Loading Logs" appearance="error">
-        <Text>{error}</Text>
-      </SectionMessage>
+      <Stack space="space.200">
+        <SectionMessage title="Error Loading Logs" appearance="error">
+          <Text>{error}</Text>
+        </SectionMessage>
+        <Button 
+          appearance="primary" 
+          onClick={() => window.location.reload()}
+        >
+          Retry
+        </Button>
+      </Stack>
     );
   }
 
@@ -68,13 +82,13 @@ const App = () => {
   }
 
   // Build table rows from log chain
-  const rows = logData.chain.map((entry, idx) => ({
+  const rows = (logData?.chain || []).map((entry, idx) => ({
     key: `log-${idx}`,
     cells: [
       { content: idx + 1 },
       { content: entry.action },
       { content: new Date(entry.timestamp).toLocaleString() },
-      { content: entry.hash.substring(0, 16) + '...' }
+      { content: entry.hash?.substring(0, 16) + '...' || 'N/A' }
     ]
   }));
 

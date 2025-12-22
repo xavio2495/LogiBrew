@@ -15,8 +15,8 @@ import ForgeReconciler, {
   SectionMessage,
   BarChart,
   DynamicTable,
-  Inline,
-  Badge
+  Badge,
+  Button
 } from '@forge/react';
 import { invoke } from '@forge/bridge';
 
@@ -53,9 +53,22 @@ const App = () => {
 
   if (error) {
     return (
-      <SectionMessage title="Error Loading Metrics" appearance="error">
-        <Text>{error}</Text>
-      </SectionMessage>
+      <Stack space="space.200">
+        <SectionMessage title="Error Loading Metrics" appearance="error">
+          <Text>{error}</Text>
+        </SectionMessage>
+        <Button 
+          appearance="primary" 
+          onClick={() => {
+            setError(null);
+            setLoading(true);
+            // Trigger re-fetch by updating state
+            window.location.reload();
+          }}
+        >
+          Retry
+        </Button>
+      </Stack>
     );
   }
 
@@ -68,13 +81,13 @@ const App = () => {
   }
 
   // Build delay patterns chart data
-  const delayChartData = metrics.delayPatterns.map(pattern => ({
+  const delayChartData = (metrics?.delayPatterns || []).map(pattern => ({
     label: pattern.cause,
     value: pattern.count
   }));
 
   // Build recent activities table
-  const activityRows = metrics.recentActivities.map((activity, idx) => ({
+  const activityRows = (metrics?.recentActivities || []).map((activity, idx) => ({
     key: `activity-${idx}`,
     cells: [
       { content: activity.shipmentId },
@@ -97,20 +110,20 @@ const App = () => {
       <Heading size="medium">LogiBrew Metrics Dashboard</Heading>
 
       {/* Summary Stats */}
-      <Inline space="space.200">
+      <Stack space="space.200">
         <Stack space="space.100">
           <Text>Total Shipments</Text>
-          <Heading size="small">{metrics.summary.totalShipments}</Heading>
+          <Heading size="small">{metrics?.summary?.totalShipments || 0}</Heading>
         </Stack>
         <Stack space="space.100">
           <Text>Avg Response Time</Text>
-          <Heading size="small">{metrics.summary.avgResponseTime}h</Heading>
+          <Heading size="small">{metrics?.summary?.avgResponseTime || 0}h</Heading>
         </Stack>
         <Stack space="space.100">
           <Text>Compliance Rate</Text>
-          <Heading size="small">{metrics.summary.complianceRate}%</Heading>
+          <Heading size="small">{metrics?.summary?.complianceRate || 0}%</Heading>
         </Stack>
-      </Inline>
+      </Stack>
 
       {/* Delay Patterns Chart */}
       <Stack space="space.100">
@@ -201,7 +214,7 @@ const App = () => {
       )}
 
       <Text appearance="subtle">
-        Last updated: {new Date(metrics.lastUpdated).toLocaleString()}
+        Last updated: {metrics?.lastUpdated ? new Date(metrics.lastUpdated).toLocaleString() : 'N/A'}
       </Text>
     </Stack>
   );

@@ -18,7 +18,6 @@ import ForgeReconciler, {
   Stack,
   Heading,
   Text,
-  Inline,
   Lozenge,
   Spinner,
   Badge
@@ -307,7 +306,7 @@ const App = () => {
 
       {/* Loading State */}
       {isSubmitting && (
-        <Stack space="space.100" alignInline="center">
+        <Stack space="space.100">
           <Spinner size="medium" />
           <Text>Running compliance checks and emission calculations...</Text>
         </Stack>

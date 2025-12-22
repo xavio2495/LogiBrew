@@ -18,7 +18,7 @@ import ForgeReconciler, {
   SectionMessage,
   DynamicTable,
   Badge,
-  Inline,
+  Button,
   Tabs,
   TabList,
   Tab,
@@ -60,7 +60,7 @@ const App = () => {
   // Loading state with proper UI Kit components
   if (loading) {
     return (
-      <Stack space="space.300" alignInline="center">
+      <Stack space="space.300">
         <Spinner size="large" />
         <Text>Loading knowledge base data...</Text>
       </Stack>
@@ -74,6 +74,12 @@ const App = () => {
         <SectionMessage title="Error Loading Knowledge Base" appearance="error">
           <Text>{error}</Text>
         </SectionMessage>
+        <Button 
+          appearance="primary" 
+          onClick={() => window.location.reload()}
+        >
+          Retry
+        </Button>
       </Stack>
     );
   }
@@ -143,7 +149,7 @@ const App = () => {
       </Stack>
 
       {/* Summary Stats Cards */}
-      <Inline space="space.300" alignBlock="start">
+      <Stack space="space.300">
         <Stack space="space.100">
           <Text appearance="subtle">Total Disruptions Analyzed</Text>
           <Heading size="medium">{data.summary?.totalDisruptions || 0}</Heading>
@@ -160,7 +166,7 @@ const App = () => {
           <Text appearance="subtle">Avg Resolution Time</Text>
           <Heading size="medium">{data.summary?.avgResolutionHours || 0}h</Heading>
         </Stack>
-      </Inline>
+      </Stack>
 
       {/* Tabs Component - CRITICAL: Follow exact structure */}
       <Tabs id="knowledge-tabs">

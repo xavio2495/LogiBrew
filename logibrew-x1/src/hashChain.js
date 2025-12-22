@@ -8,8 +8,8 @@
  * @module hashChain
  */
 
-const crypto = require('crypto');
-const { storage } = require('@forge/api');
+import crypto from 'crypto';
+import { storage } from '@forge/api';
 
 /**
  * Generate SHA-256 hash for a decision record
@@ -91,7 +91,7 @@ async function logComplianceDecision(decision) {
   }
 }
 
-module.exports = {
+export {
   generateHash,
   verifyChain,
   logComplianceDecision

@@ -5,10 +5,13 @@
  * for logistics disruption management.
  */
 
-const complianceRules = require('./rules.json');
-const { generateHash, logComplianceDecision: logToHashChain } = require('./hashChain.js');
-const { storage } = require('@forge/api');
-const Resolver = require('@forge/resolver').default;
+import { generateHash, logComplianceDecision as logToHashChain } from './hashChain.js';
+import { storage } from '@forge/api';
+import Resolver from '@forge/resolver';
+import complianceRulesData from './rules.json';
+
+// Use the imported rules
+const complianceRules = complianceRulesData;
 
 /**
  * Validate Compliance Action Handler
@@ -1684,20 +1687,21 @@ async function scheduledTrendForecasting() {
 }
 
 // Export all functions and resolvers
-module.exports = {
+export {
   validateCompliance,
   logComplianceDecision,
   calculateEmissions,
   shipmentPanelResolver,
-  shipmentPanelResolverDefs: shipmentResolver.getDefinitions(),
   workflowValidator,
   workflowPostFunction,
   issueCreatedHandler,
   issueUpdatedHandler,
   logMacroRenderer,
-  logMacroResolver: macroResolverInstance.getDefinitions(),
-  dashboardResolver: dashboardResolverInstance.getDefinitions(),
-  jsmPanelResolver: jsmPanelResolverInstance.getDefinitions(),
-  knowledgeBaseResolver: knowledgeBaseResolverInstance.getDefinitions(),
   scheduledTrendForecasting
 };
+
+export const shipmentPanelResolverDefs = shipmentResolver.getDefinitions();
+export const logMacroResolver = macroResolverInstance.getDefinitions();
+export const dashboardResolver = dashboardResolverInstance.getDefinitions();
+export const jsmPanelResolver = jsmPanelResolverInstance.getDefinitions();
+export const knowledgeBaseResolver = knowledgeBaseResolverInstance.getDefinitions();

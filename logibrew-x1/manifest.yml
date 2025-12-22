@@ -177,19 +177,19 @@ modules:
       description: UN hazardous material classification code (e.g., UN1203, UN2814)
       type: string
       formatter:
-        expression: "return `UN Code: ${issue.fields['customfield_${fieldId}'] || 'Not specified'}`;"
+        expression: "value ? `UN Code: ${value}` : 'Not specified'"
     - key: transport-modes-field
       name: Transport Modes
       description: Selected transport modes for multimodal shipments
       type: string
       formatter:
-        expression: "return `Modes: ${issue.fields['customfield_${fieldId}'] || 'Not specified'}`;"
+        expression: "value ? `Modes: ${value}` : 'Not specified'"
     - key: shipment-timeline-field
       name: Shipment Timeline
       description: Pickup and delivery dates for timeline validation
       type: string
       formatter:
-        expression: "return `Timeline: ${issue.fields['customfield_${fieldId}'] || 'Not specified'}`;"
+        expression: "value ? `Timeline: ${value}` : 'Not specified'"
   jira:issuePanel:
     - key: shipment-data-panel
       title: LogiBrew Shipment Manager
