@@ -2,6 +2,7 @@
   <img src="assets/logo.png" alt="LogiBrew-logo" width="550"/>
 </p>
 
+
 ## Inspiration
 The idea for LogiBrew emerged from the turbulent landscape of the logistics industry in 2025, where supply chain disruptions—driven by global events, evolving regulations like EU ETS emission limits, and operational issues such as multimodal shipment delays—call for more than traditional reactive tools. As a team passionate about AI-enhanced collaboration, we were motivated by the real challenges logistics professionals face: fragmented data causing inefficient escalations, the absence of tamper-evident logging for audits (potentially leading to fines for non-compliance with UN hazardous material codes), and lost chances to learn from historical incidents. Leveraging Atlassian's ecosystem, we envisioned a "Verifiable Adaptation Framework" that transforms disruptions into proactive, team-oriented enhancements. LogiBrew fosters resilience by integrating AI insights into tools like Jira and Confluence, enabling teams to adapt routes, validate compliance, and maintain traceable audit trails without relying on external systems. Our drive was to connect volatile supply chains with seamless collaborative software, turning hypothetical scenarios into verifiable, actionable outcomes.
 
